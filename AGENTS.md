@@ -32,7 +32,7 @@ Repo: github.com/hewittw/sel-feedback-mock · Live: https://feedback-mock.vercel
 - Commit, `git push`, then deploy from a clean worktree of HEAD so nothing uncommitted ships:
   `git worktree add --detach /tmp/fm-deploy HEAD && cp -R .vercel /tmp/fm-deploy/ && (cd /tmp/fm-deploy && vercel deploy --prod --yes) && git worktree remove --force /tmp/fm-deploy`
 - GitHub → Vercel auto-deploy is not connected (needs a GitHub Login Connection in Vercel account settings).
-- Vercel SSO protection is off so every deployment URL opens without a Vercel login.
+- Share only https://feedback-mock.vercel.app. Per-deploy and team URLs (`feedback-mock-…-hew2.vercel.app`) sit behind Vercel login (SSO protection is on).
 
 ## Keep a trail
 - Commit after each meaningful step; the message names the change and the reason.

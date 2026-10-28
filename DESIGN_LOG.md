@@ -31,6 +31,6 @@ What we chose, why, what we rejected, and what was reported broken. Newest at th
 - **Process adopted from the Design, Build, Ship repos:** AGENTS.md, a `verify-ui` skill, `scripts/matrix.mjs`
   (11 sizes, touch on phones), a new `scripts/flow.mjs` (the whole session × 3 engines × desktop / iPhone touch /
   reduced motion / JS off, refresh/Back/Forward, all 30 step URLs), a contact sheet, chrome-devtools denied,
-  `vercel.json` pins the framework, deploy from a clean worktree, Vercel SSO protection off.
+  `vercel.json` pins the framework, deploy from a clean worktree. Vercel SSO protection stays on for per-deploy URLs, so only the main URL is shared.
 - **Test-harness note:** Playwright's Firefox `reload()` with JS off adds a history entry (2 → 3) that a real reload
   doesn't, so `flow.mjs` refreshes after checking Back/Forward.
