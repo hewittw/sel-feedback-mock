@@ -19,4 +19,5 @@ description: Check the mock interaction in real browsers and report what's broke
 5. Tab through each step: a focus ring must be visible on every control; check hover and pressed.
 6. Report **evidence, not claims**: what's broken, with screenshot paths. Don't rate your own work generously.
    Judgment calls (copy, style fit) go to the user, not decided here.
-7. After deploying, run step 2 again against https://feedback-mock.vercel.app.
+7. After deploying, run step 2 **once** against https://feedback-mock.vercel.app. Never loop tests or run verifier agents
+   against the live site: a burst of headless traffic trips Vercel's DDoS mitigation (403 challenge) for this IP.

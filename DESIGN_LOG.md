@@ -48,3 +48,11 @@ What we chose, why, what we rejected, and what was reported broken. Newest at th
   `matrix.mjs` were fixed with it: it now flags text clipped inside its own box, and it measures overflow against the
   real screen width (with mobile emulation a too-wide page zooms out, so `innerWidth` grew to fit and hid a 49px
   overflow on the Done buttons and a 17px one on the menu at 320). On phones the nav row now wraps and the menu buttons are tighter.
+
+## 2026-10-28 · Our own tests tripped Vercel's DDoS mitigation
+- After about 2.4k requests in an hour (repeated `flow.mjs` runs plus an independent verifier agent, all headless from
+  one IP), Vercel's automatic `sys_dos_mitigation` began answering this IP with 403 + a JS challenge
+  (`x-vercel-mitigated: challenge`). Bot Protection and Attack Mode are off; it's the always-on system rule. Real
+  browsers pass the challenge on their own (a brief "Security Checkpoint" page); headless ones fail it.
+- **Rule from now on:** repeated testing on localhost only; one `flow.mjs` run against live per deploy. `flow.mjs`
+  now probes first and stops with a plain message if the firewall is challenging. A bypass rule needs Pro, so no.

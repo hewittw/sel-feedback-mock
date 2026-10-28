@@ -26,7 +26,9 @@ Repo: github.com/hewittw/sel-feedback-mock · Live: https://feedback-mock.vercel
 2. `node scripts/flow.mjs http://localhost:3456`: the whole session in Chromium, WebKit and Firefox × desktop,
    iPhone touch, reduced motion and **JS off**, plus refresh/Back/Forward and all 25 URLs (5 types × home + 4 steps). It must say "All checks passed".
 3. The `verify-ui` skill: `scripts/matrix.mjs` on each step at 11 sizes, then `scripts/contact.py` for a contact sheet. Look at it.
-4. Deploy (below), then run `flow.mjs` again against the live URL.
+4. Deploy (below), then run `flow.mjs` **once** against the live URL. Do all repeated testing on localhost:
+   each live run is ~600 requests, and Vercel's automatic DDoS mitigation challenges the IP (403,
+   `x-vercel-mitigated: challenge`) after a few thousand in an hour. That hits everyone on the same network until it lifts.
 
 ## Deploy
 - Commit, `git push`, then deploy from a clean worktree of HEAD so nothing uncommitted ships:

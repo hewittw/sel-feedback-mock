@@ -13,6 +13,14 @@ const CONFIGS = [
   ["no-js", { viewport: { width: 1280, height: 800 }, javaScriptEnabled: false }],
 ];
 let failed = 0;
+
+// Vercel's automatic DDoS mitigation challenges an IP that sends a burst of automated traffic (~2k requests/hour
+// from repeated runs). That is the firewall, not the site: stop and say so instead of reporting 13 confusing failures.
+const probe = await fetch(`${BASE}/`);
+if (probe.headers.get("x-vercel-mitigated") === "challenge") {
+  console.log("✕ Vercel's firewall is challenging this IP (x-vercel-mitigated: challenge) after a burst of test traffic.\n  Not a site bug. Wait until it lifts (`vercel firewall overview`), and run against localhost meanwhile.");
+  process.exit(2);
+}
 const log = (ok, msg) => { if (!ok) failed++; console.log(`${ok ? "✓" : "✕"} ${msg}`); };
 
 for (const [ename, eng] of Object.entries({ chromium, webkit, firefox })) {
