@@ -1,11 +1,42 @@
 "use client";
 
 import Form from "next/form";
-import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import Link, { useLinkStatus } from "next/link";
+import { type ComponentProps, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useFormStatus } from "react-dom";
 import { href, type ScenarioId } from "./scenarios";
 
 const noop = () => () => {};
+
+/** A hairline that runs along the bottom of a button while its navigation is in flight (shown after 150ms). */
+function PendingBar({ pending }: { pending: boolean }) {
+  return <span className="pending-bar" data-on={pending} aria-hidden />;
+}
+
+function LinkPending() {
+  return <PendingBar pending={useLinkStatus().pending} />;
+}
+
+/** A Link styled as a button that shows it is working if the next step takes a moment to arrive. */
+export function NavLink({ children, ...props }: ComponentProps<typeof Link>) {
+  return (
+    <Link {...props}>
+      {children}
+      <LinkPending />
+    </Link>
+  );
+}
+
+/** The submit button of a GET <Form>, with the same pending hairline. */
+export function SubmitButton({ children, className, disabled }: { children: React.ReactNode; className: string; disabled?: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" className={className} disabled={disabled}>
+      {children}
+      <PendingBar pending={pending} />
+    </button>
+  );
+}
 
 /**
  * The check-in card. The server renders it with the sample answer already in the box, so it works without
@@ -33,7 +64,7 @@ export function FeedbackForm({ mode, sample, initial }: { mode: ScenarioId; samp
   return (
     <Form action="/" className="stage-form">
       <input type="hidden" name="mode" value={mode} />
-      <input type="hidden" name="step" value="4" />
+      <input type="hidden" name="step" value="3" />
       <article className="card">
         <p className="eyebrow">Check-in</p>
         <h2>Time to give feedback.</h2>
@@ -58,26 +89,11 @@ export function FeedbackForm({ mode, sample, initial }: { mode: ScenarioId; samp
         </div>
       </article>
       <div className="nav">
-        <Link className="btn" href={href(mode, 2)}>← Back</Link>
-        <button type="submit" className="btn btn-primary" disabled={typing}>
+        <NavLink className="btn" href={href(mode, 1)}>← Back</NavLink>
+        <SubmitButton className="btn btn-primary" disabled={typing}>
           {text.trim() ? "Send feedback →" : "Skip feedback →"}
-        </button>
+        </SubmitButton>
       </div>
     </Form>
-  );
-}
-
-export function Timer() {
-  const [sec, setSec] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setSec((x) => x + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return (
-    <div className="timer">
-      <i className="pulse" aria-hidden />
-      <b>{Math.floor(sec / 60)}:{String(sec % 60).padStart(2, "0")}</b>
-      <span>talking · suggested 2–3 minutes</span>
-    </div>
   );
 }

@@ -1,9 +1,8 @@
 import Form from "next/form";
-import Link from "next/link";
-import { FeedbackForm, Timer } from "./interactive";
+import { FeedbackForm, NavLink, SubmitButton } from "./interactive";
 import { getScenario, href, scenarios, story, type Scenario, type ScenarioId } from "./scenarios";
 
-const STEPS = ["Question", "Discuss", "Feedback", "Next question", "Done"] as const;
+const STEPS = ["Question", "Feedback", "Next question", "Done"] as const;
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
@@ -46,7 +45,7 @@ function Home({ mode }: { mode: ScenarioId }) {
         </p>
         <input type="hidden" name="step" value="1" />
         <div className="start-wrap">
-          <button type="submit" className="btn btn-primary btn-hero">Start interaction</button>
+          <SubmitButton className="btn btn-primary btn-hero">Start interaction</SubmitButton>
         </div>
 
         <fieldset className="picker">
@@ -76,7 +75,7 @@ function Menu({ s, step }: { s: Scenario; step: number }) {
   return (
     <nav className="menu" aria-label="Session menu">
       <div className="menu-left">
-        <Link className="btn btn-ghost" href={href(s.id)}>← Home</Link>
+        <NavLink className="btn btn-ghost" href={href(s.id)}>← Home</NavLink>
         <span className="tag tag-mode" title="Feedback type for this run">
           <i className={`dot dot-${s.tone}`} aria-hidden /> {s.label}
         </span>
@@ -86,7 +85,7 @@ function Menu({ s, step }: { s: Scenario; step: number }) {
           {STEPS.map((name, i) => <i key={name} className="step-pip" data-on={i < step} aria-hidden />)}
           <span className="step-count" aria-hidden>{step}/{STEPS.length}</span>
         </div>
-        <Link className="btn btn-ghost" href={href(s.id, 1)}>↺ Restart</Link>
+        <NavLink className="btn btn-ghost" href={href(s.id, 1)}>↺ Restart</NavLink>
       </div>
     </nav>
   );
@@ -107,46 +106,25 @@ function StepView({ s, step, fb }: { s: Scenario; step: number; fb?: string }) {
             <p>{story.recap}</p>
           </div>
           <h2>{story.question}</h2>
-          <p className="who">Read this out loud together.</p>
+          <p className="who">Read it out loud, then talk it over together.</p>
         </article>
         <div className="nav">
           <span />
-          <Link className="btn btn-primary" href={href(s.id, 2)}>Start discussing →</Link>
+          <NavLink className="btn btn-primary" href={href(s.id, 2)}>Done talking →</NavLink>
         </div>
       </>
     );
 
-  if (step === 2)
-    return (
-      <>
-        <article className="card">
-          <p className="eyebrow">Talk it over</p>
-          <h2>Take a few minutes to discuss this together.</h2>
-          <p className="sub">“{story.question}”</p>
-          <ol className="prompts">
-            {story.discussPrompts.map((p, i) => (
-              <li key={p}><span>0{i + 1}</span>{p}</li>
-            ))}
-          </ol>
-          <Timer />
-        </article>
-        <div className="nav">
-          <Link className="btn" href={href(s.id, 1)}>← Back</Link>
-          <Link className="btn btn-primary" href={href(s.id, 3)}>Done talking →</Link>
-        </div>
-      </>
-    );
+  if (step === 2) return <FeedbackForm mode={s.id} sample={s.feedback} initial={fb} />;
 
-  if (step === 3) return <FeedbackForm mode={s.id} sample={s.feedback} initial={fb} />;
-
-  if (step === 4)
+  if (step === 3)
     return (
       <>
         <article className="card">
           <p className="eyebrow">Question 2</p>
           <h2>{changed ? "Your next question was adjusted." : "Your next question stays the same."}</h2>
           <div className="compare">
-            <div className="q q-old" data-replaced={changed}>
+            <div className="q q-old">
               <div className="q-label">Originally planned</div>
               <div className="q-text">{story.plannedNext}</div>
             </div>
@@ -166,8 +144,8 @@ function StepView({ s, step, fb }: { s: Scenario; step: number; fb?: string }) {
           </dl>
         </article>
         <div className="nav">
-          <Link className="btn" href={href(s.id, 3, feedback)}>← Back</Link>
-          <Link className="btn btn-primary" href={href(s.id, 5, feedback)}>Ask this question →</Link>
+          <NavLink className="btn" href={href(s.id, 2, feedback)}>← Back</NavLink>
+          <NavLink className="btn btn-primary" href={href(s.id, 4, feedback)}>Ask this question →</NavLink>
         </div>
       </>
     );
@@ -186,8 +164,8 @@ function StepView({ s, step, fb }: { s: Scenario; step: number; fb?: string }) {
         </ul>
       </article>
       <div className="nav">
-        <Link className="btn" href={href(s.id, 1)}>↺ Run again</Link>
-        <Link className="btn btn-primary" href={href(s.id)}>Try another feedback type →</Link>
+        <NavLink className="btn" href={href(s.id, 1)}>↺ Run again</NavLink>
+        <NavLink className="btn btn-primary" href={href(s.id)}>Try another feedback type →</NavLink>
       </div>
     </>
   );

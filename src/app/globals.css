@@ -52,6 +52,10 @@ button, textarea { font: inherit; color: inherit; }
   transition: background 200ms ease-out, border-color 200ms ease-out, color 200ms ease-out, transform 120ms ease-out;
 }
 a.btn { text-decoration: none; }
+.btn { position: relative; }
+.pending-bar { position: absolute; left: 2px; right: 2px; bottom: 0; height: 2px; border-radius: 1px; background: currentColor; opacity: 0; transform: scaleX(0); transform-origin: left; pointer-events: none; }
+.pending-bar[data-on="true"] { animation: pending 1.4s var(--ease) 150ms infinite; }
+@keyframes pending { 0% { opacity: 0.7; transform: scaleX(0); } 70% { opacity: 0.7; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(1); } }
 .btn:hover { background: var(--parchment); border-color: var(--ink-soft); }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { cursor: not-allowed; border-style: dashed; color: var(--pencil); background: transparent; transform: none; }
@@ -125,14 +129,7 @@ a.btn { text-decoration: none; }
 .recap .title { font: italic 400 15px/1.3 var(--serif); color: var(--pencil); margin-bottom: 6px; }
 .recap p { font-size: 16px; line-height: 25px; }
 
-.prompts { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 10px; }
-.prompts li { display: grid; grid-template-columns: 26px 1fr; font: 400 17px/26px var(--serif); color: var(--ink-soft); }
-.prompts li span { font: 400 12px/26px var(--mono); color: var(--pencil); }
 
-.timer { display: flex; align-items: center; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--rule); font: 400 13px/1 var(--sans); color: var(--pencil); }
-.timer b { font: 400 22px/1 var(--mono); color: var(--ink); font-weight: 400; font-feature-settings: "tnum"; }
-.pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--sage); animation: pulse 1.6s ease-in-out infinite; }
-@keyframes pulse { 50% { opacity: 0.25; } }
 
 .field { margin-top: 26px; }
 .field label { display: block; font: 500 13px/17px var(--sans); margin-bottom: 8px; }
@@ -154,7 +151,6 @@ a.btn { text-decoration: none; }
 .q-old { background: var(--paper); border: 1px solid var(--rule); }
 .q-old .q-label { color: var(--pencil); }
 .q-old .q-text { font: 400 17px/26px var(--serif); color: var(--pencil); }
-.q-old[data-replaced="true"] .q-text { text-decoration: line-through; text-decoration-color: var(--rule-strong); }
 .q-new { background: #fff; border: 1px solid var(--ink); box-shadow: 3px 3px 0 0 #fff, 3px 3px 0 1px var(--ink); }
 .q-new .q-label { color: var(--ink); }
 .q-new .q-text { font: 400 clamp(22px, 3.2vw, 27px)/1.3 var(--serif); color: var(--ink); letter-spacing: -0.01em; }
@@ -174,8 +170,11 @@ a.btn { text-decoration: none; }
   .picker-head { flex-direction: column; align-items: flex-start; gap: 4px; }
   .btn-hero { width: 100%; padding: 0 24px; }
   .home .start-wrap { width: 100%; }
-  .nav .btn { flex: 1; }
+  .nav { flex-wrap: wrap; }
+  .nav > span:empty { display: none; }
+  .nav .btn { flex: 1 1 auto; }
   .step-pip { width: 14px; }
+  .menu .btn-ghost { padding: 0 10px; }
   .tag-mode { display: none; }
 }
 

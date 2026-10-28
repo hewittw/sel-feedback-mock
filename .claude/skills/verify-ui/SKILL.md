@@ -7,10 +7,10 @@ description: Check the mock interaction in real browsers and report what's broke
 
 1. Build and serve production, not dev: `npm run build && npx next start -p 3456`.
 2. **Flow first.** `node scripts/flow.mjs http://localhost:3456` runs the whole session in Chromium, WebKit and
-   Firefox × desktop / iPhone touch / reduced motion / JavaScript off, then refresh, Back, Forward, and all 30 step
-   URLs. Anything but "All checks passed" is a bug. (The site once loaded only its home screen whenever client JS
+   Firefox × desktop / iPhone touch / reduced motion / JavaScript off, then refresh, Back, Forward, and all 25
+   URLs (5 types × home + 4 steps). Anything but "All checks passed" is a bug. (The site once loaded only its home screen whenever client JS
    didn't run. This check exists so that never ships again.)
-3. **Every size.** For each screen (home, then `step=1`…`5`):
+3. **Every size.** For each screen (home, then `step=1`…`4`):
    `node scripts/matrix.mjs "http://localhost:3456/?mode=tangential&step=N" screenshots/sN` (home is `s0`, no step).
    That is phones 320/375/390/430 (touch), 844×390 landscape, iPad 768/1024, 1280/1440/1920/2560. It prints overflow,
    console errors, broken images and text under 10px per size.

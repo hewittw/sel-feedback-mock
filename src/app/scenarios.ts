@@ -1,15 +1,10 @@
-/** One mock session: a story question, a discussion, a feedback check-in, then the adapted next question. */
+/** One mock session: a story question to discuss, a feedback check-in, then the adapted next question. */
 
 export const story = {
   title: "Bob and the Missing Homework",
   recap:
     "Bob packed his bag the night before, but in the morning he left his homework on the kitchen table. When his teacher asked for it, his folder was empty.",
   question: "What did you think of Bob’s story, where he forgot his homework at home?",
-  discussPrompts: [
-    "Parent: ask the question, then give your child time to answer first.",
-    "Follow up with “why do you think so?” or “what happened next?”",
-    "Share a short answer of your own once your child has had a turn.",
-  ],
   plannedNext: "Have you ever forgotten something important? What happened?",
 };
 

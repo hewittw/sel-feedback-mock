@@ -1,10 +1,12 @@
-# Contact sheet: one row per screen (s0 home … s5 done), one column per size. Usage: python3 scripts/contact.py <prefix> <out.jpg> size1 size2 …
+# Contact sheet: one row per screen (s0 home, s1… the steps), one column per size. Usage: python3 scripts/contact.py <prefix> <out.jpg> size1 size2 …
 import sys
 from PIL import Image, ImageDraw
 prefix, out, sizes = sys.argv[1], sys.argv[2], sys.argv[3:]
 H = 520
 rows = []
-for s in range(6):
+import glob
+N = len({f.split(prefix)[1].split("-")[0] for f in glob.glob(f"{prefix}*-{sizes[0]}.jpeg")})
+for s in range(N):
     tiles = []
     for z in sizes:
         im = Image.open(f"{prefix}{s}-{z}.jpeg")
@@ -12,7 +14,7 @@ for s in range(6):
         tiles.append(im.resize((max(1, int(im.width * H / im.height)), H)))
     rows.append(tiles)
 W = max(sum(t.width for t in r) + 12 * len(r) for r in rows)
-sheet = Image.new("RGB", (W, (H + 12) * 6), "#888")
+sheet = Image.new("RGB", (W, (H + 12) * N), "#888")
 y = 0
 for r in rows:
     x = 0

@@ -40,21 +40,25 @@ for (const [name, w, h, touch] of SIZES) {
   for (let y = 0; y < H; y += Math.max(400, h - 100)) { await p.evaluate((yy) => window.scrollTo(0, yy), y); await p.waitForTimeout(100); }
   await p.evaluate(() => window.scrollTo(0, 0));
   await p.waitForTimeout(1200);
-  const r = await p.evaluate(() => {
-    const vw = window.innerWidth;
-    const overflow = document.documentElement.scrollWidth - vw;
+  const r = await p.evaluate((w) => {
+    // Compare with the real screen width: on mobile emulation a too-wide page zooms out, so innerWidth grows to fit it.
+    const vw = w;
+    const overflow = Math.max(document.documentElement.scrollWidth, window.innerWidth) - vw;
     const offenders = [...document.querySelectorAll("body *")].filter((e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.right > vw + 1 && getComputedStyle(e).position !== "fixed"; })
       .slice(0, 5).map((e) => e.tagName.toLowerCase() + (e.className && typeof e.className === "string" ? "." + e.className.split(" ")[0] : ""));
     const broken = [...document.images].filter((i) => !(i.complete && i.naturalWidth > 0)).length;
     // rendered size: SVG text is scaled by the SVG's screen transform, so multiply by it
     const rendered = (e) => { let f = parseFloat(getComputedStyle(e).fontSize); if (e instanceof SVGGraphicsElement && e.getScreenCTM) { const m = e.getScreenCTM(); if (m) f *= Math.hypot(m.a, m.b); } return f; };
     const tiny = [...document.querySelectorAll("body *")].filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) && e.getBoundingClientRect().width > 0 && rendered(e) < 10).length;
-    return { overflow, offenders, broken, tiny };
-  });
+    // text cut off inside its own box (overflow hidden/clip), which page-overflow checks can't see
+    const clipped = [...document.querySelectorAll("body *")].filter((e) => { const s = getComputedStyle(e); return /hidden|clip/.test(s.overflowX + s.overflowY) && (e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1) && e.textContent.trim() && e.getBoundingClientRect().width > 0; })
+      .slice(0, 5).map((e) => e.tagName.toLowerCase() + ": " + e.textContent.trim().slice(0, 30));
+    return { overflow, offenders, broken, tiny, clipped };
+  }, w);
   const file = `${prefix}-${name}.jpeg`;
   fs.mkdirSync(path.dirname(file), { recursive: true });
   await p.screenshot({ path: file, type: "jpeg", quality: 65, fullPage: true });
-  rows.push({ size: name, overflowPx: r.overflow, overflowing: r.offenders, brokenImages: r.broken, textUnder10px: r.tiny, consoleErrors: errs.slice(0, 3), file });
+  rows.push({ size: name, overflowPx: r.overflow, overflowing: r.offenders, brokenImages: r.broken, textUnder10px: r.tiny, clippedText: r.clipped, consoleErrors: errs.slice(0, 3), file });
   await ctx.close();
 }
 await b.close();

@@ -34,3 +34,17 @@ What we chose, why, what we rejected, and what was reported broken. Newest at th
   `vercel.json` pins the framework, deploy from a clean worktree. Vercel SSO protection stays on for per-deploy URLs, so only the main URL is shared.
 - **Test-harness note:** Playwright's Firefox `reload()` with JS off adds a history entry (2 → 3) that a real reload
   doesn't, so `flow.mjs` refreshes after checking Back/Forward.
+
+## 2026-10-28 · Review of the live site: two cuts, one addition
+- **Cut: the strikethrough** on the originally planned question. It stays muted (Pencil on Paper) above the new
+  question, which carries the ink edge; the strike made it hard to read.
+- **Cut, for now: the "Talk it over" card** (discussion prompts + timer). The session is 4 steps: Question 1 →
+  Check-in → Question 2 → Done. The question card now says "Read it out loud, then talk it over together" and its
+  button is "Done talking →". The card is in git history (commit 55085b3) if it comes back.
+- **Added: a pending hairline** on buttons (`useLinkStatus` for links, `useFormStatus` for the GET forms), shown only
+  if a step takes over 150ms to arrive. Measured live: most clicks 90–210ms, one 804ms outlier, long enough to look broken.
+- **Caught by looking at the contact sheet (not by the numbers):** the pending bar's `overflow: hidden` let flex buttons
+  shrink below their label, so "Try another feedback type →" was cut off on phones. Removed it. Two blind spots in
+  `matrix.mjs` were fixed with it: it now flags text clipped inside its own box, and it measures overflow against the
+  real screen width (with mobile emulation a too-wide page zooms out, so `innerWidth` grew to fit and hid a 49px
+  overflow on the Done buttons and a 17px one on the menu at 320). On phones the nav row now wraps and the menu buttons are tighter.
