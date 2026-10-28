@@ -85,3 +85,11 @@ export const scenarios: Scenario[] = [
 
 export const getScenario = (id: string | null | undefined) =>
   scenarios.find((s) => s.id === id) ?? scenarios[0];
+
+/** Every step is its own server-rendered URL, e.g. /?mode=tangential&step=3. */
+export function href(mode: ScenarioId, step?: number, fb?: string) {
+  const q = new URLSearchParams({ mode });
+  if (step) q.set("step", String(step));
+  if (fb !== undefined) q.set("fb", fb);
+  return `/?${q}`;
+}

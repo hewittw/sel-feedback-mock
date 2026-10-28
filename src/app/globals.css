@@ -51,6 +51,7 @@ button, textarea { font: inherit; color: inherit; }
   background: var(--mount); border: 1px solid var(--rule-strong); color: var(--ink);
   transition: background 200ms ease-out, border-color 200ms ease-out, color 200ms ease-out, transform 120ms ease-out;
 }
+a.btn { text-decoration: none; }
 .btn:hover { background: var(--parchment); border-color: var(--ink-soft); }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { cursor: not-allowed; border-style: dashed; color: var(--pencil); background: transparent; transform: none; }
@@ -68,11 +69,12 @@ button, textarea { font: inherit; color: inherit; }
 .home .lede { font: 400 19px/30px var(--serif); color: var(--ink-soft); max-width: 560px; margin: 0 0 44px; }
 .home .start-wrap { margin-bottom: 72px; }
 
-.picker { width: 100%; text-align: left; }
-.picker-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--rule); padding-bottom: 10px; margin-bottom: 14px; gap: 12px; }
-.picker-head h2 { font: 450 22px/1.2 var(--serif); margin: 0; }
-.picker-head span { font: 400 12px/17px var(--sans); color: var(--pencil); }
-.picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+/* The picker is a native radio group inside a GET form, so it works with or without JavaScript. */
+.picker { width: 100%; text-align: left; border: 0; margin: 0; padding: 0; min-width: 0; }
+.picker-head { float: left; width: 100%; padding: 0 0 10px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--rule); }
+.picker-title { font: 450 22px/1.2 var(--serif); }
+.picker-sub { font: 400 12px/17px var(--sans); color: var(--pencil); }
+.picker-grid { clear: both; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
 .opt {
   position: relative; display: flex; flex-direction: column; gap: 6px; text-align: left;
   padding: 14px 16px 15px; border-radius: 3px; cursor: pointer;
@@ -80,11 +82,14 @@ button, textarea { font: inherit; color: inherit; }
   transition: background 200ms ease-out, border-color 200ms ease-out;
 }
 .opt:hover { border-color: var(--rule-strong); background: #fff; }
-.opt[aria-checked="true"] { background: #fff; border-color: var(--ink); box-shadow: 3px 3px 0 0 var(--paper), 3px 3px 0 1px var(--ink); }
 .opt-top { display: flex; align-items: center; gap: 8px; font: 600 14px/1.2 var(--sans); }
+.opt-top input { margin: 0 0 0 auto; width: 16px; height: 16px; flex: none; accent-color: var(--ink); cursor: pointer; }
 .opt-desc { font: 400 13px/18px var(--sans); color: var(--pencil); }
-.opt-check { margin-left: auto; font: 500 12px/1 var(--mono); color: var(--ink); opacity: 0; }
-.opt[aria-checked="true"] .opt-check { opacity: 1; }
+@supports selector(:has(*)) {
+  .opt:has(input:checked) { background: #fff; border-color: var(--ink); box-shadow: 3px 3px 0 0 var(--paper), 3px 3px 0 1px var(--ink); }
+  .opt:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .opt input:focus-visible { outline: none; }
+}
 
 .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .dot-neutral { background: var(--pencil); }
@@ -100,6 +105,7 @@ button, textarea { font: inherit; color: inherit; }
 .step-pip[data-on="true"] { background: var(--ink); }
 .step-count { font: 400 12px/1 var(--mono); color: var(--pencil); margin-left: 6px; font-feature-settings: "tnum"; }
 
+.stage-form { display: flex; flex-direction: column; gap: 14px; }
 .nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 
 /* ---------- Card ---------- */
@@ -112,6 +118,7 @@ button, textarea { font: inherit; color: inherit; }
 @keyframes card-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .card h2 { font: 400 clamp(28px, 4.4vw, 38px)/1.18 var(--serif); letter-spacing: -0.015em; margin: 0; }
 .card p { font: 400 18px/28px var(--serif); color: var(--ink-soft); margin: 0; }
+.card .sub { margin-top: 14px; }
 .card .who { font: 500 13px/17px var(--sans); color: var(--pencil); margin: 18px 0 0; }
 
 .recap { border-left: 2px solid var(--rule-strong); padding: 2px 0 2px 16px; margin: 0 0 28px; }
@@ -164,6 +171,7 @@ button, textarea { font: inherit; color: inherit; }
 .done-list li::before { content: "✓"; color: var(--sage); font-weight: 600; }
 
 @media (max-width: 560px) {
+  .picker-head { flex-direction: column; align-items: flex-start; gap: 4px; }
   .btn-hero { width: 100%; padding: 0 24px; }
   .home .start-wrap { width: 100%; }
   .nav .btn { flex: 1; }
