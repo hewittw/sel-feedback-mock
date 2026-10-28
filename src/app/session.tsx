@@ -10,29 +10,48 @@ export function Session() {
   const [step, setStep] = useState(-1); // -1 = home
   const s = getScenario(mode);
 
-  // Let a link open with a feedback type picked: ?mode=tangential
+  // Each step has its own URL (?mode=tangential&step=3), so refresh, Back and shared links all work.
   useEffect(() => {
-    const m = new URLSearchParams(window.location.search).get("mode");
-    if (m && scenarios.some((x) => x.id === m)) setMode(m as ScenarioId);
+    const read = () => {
+      const q = new URLSearchParams(window.location.search);
+      const m = q.get("mode");
+      const n = Number(q.get("step"));
+      setMode(m && scenarios.some((x) => x.id === m) ? (m as ScenarioId) : "none");
+      setStep(Number.isInteger(n) && n >= 1 && n <= STEPS.length ? n - 1 : -1);
+    };
+    read();
+    window.addEventListener("popstate", read);
+    return () => window.removeEventListener("popstate", read);
   }, []);
+
+  const urlFor = (id: ScenarioId, n: number) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("mode", id);
+    if (n < 0) url.searchParams.delete("step");
+    else url.searchParams.set("step", String(n + 1));
+    return url;
+  };
+
+  const go = (n: number) => {
+    setStep(n);
+    window.history.pushState(null, "", urlFor(mode, n));
+  };
 
   const pick = (id: ScenarioId) => {
     setMode(id);
-    const url = new URL(window.location.href);
-    url.searchParams.set("mode", id);
-    window.history.replaceState(null, "", url);
+    window.history.replaceState(null, "", urlFor(id, -1));
   };
 
   useEffect(() => window.scrollTo({ top: 0 }), [step]);
 
-  if (step < 0) return <Home mode={mode} onPick={pick} onStart={() => setStep(0)} />;
+  if (step < 0) return <Home mode={mode} onPick={pick} onStart={() => go(0)} />;
 
   return (
     <main className="shell">
       <div className="stage">
         <nav className="menu" aria-label="Session menu">
           <div className="menu-left">
-            <button className="btn btn-ghost" onClick={() => setStep(-1)}>← Home</button>
+            <button className="btn btn-ghost" onClick={() => go(-1)}>← Home</button>
             <span className="tag tag-mode" title="Feedback type for this run">
               <i className={`dot dot-${s.tone}`} aria-hidden /> {s.label}
             </span>
@@ -42,11 +61,11 @@ export function Session() {
               {STEPS.map((name, i) => <i key={name} className="step-pip" data-on={i <= step} aria-hidden />)}
               <span className="step-count">{step + 1}/{STEPS.length}</span>
             </div>
-            <button className="btn btn-ghost" onClick={() => setStep(0)}>↺ Restart</button>
+            <button className="btn btn-ghost" onClick={() => go(0)}>↺ Restart</button>
           </div>
         </nav>
 
-        <Step step={step} s={s} onNext={() => setStep(step + 1)} onBack={() => setStep(step - 1)} onHome={() => setStep(-1)} onRestart={() => setStep(0)} />
+        <Step step={step} s={s} onNext={() => go(step + 1)} onBack={() => go(step - 1)} onHome={() => go(-1)} onRestart={() => go(0)} />
       </div>
       <p className="foot">Mock interaction · design prototype · no data is saved</p>
     </main>
@@ -99,7 +118,8 @@ function Home({ mode, onPick, onStart }: { mode: ScenarioId; onPick: (id: Scenar
 type StepProps = { step: number; s: Scenario; onNext: () => void; onBack: () => void; onHome: () => void; onRestart: () => void };
 
 function Step({ step, s, onNext, onBack, onHome, onRestart }: StepProps) {
-  const [feedback, setFeedback] = useState("");
+  // Opened straight onto a later step (refresh or link): show the sample answer as if it was sent.
+  const [feedback, setFeedback] = useState(step > 2 ? s.feedback : "");
   const typing = useTypewriter(step === 2 ? s.feedback : "", setFeedback);
   const changed = s.next !== story.plannedNext;
 
