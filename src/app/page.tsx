@@ -1,5 +1,5 @@
 import Form from "next/form";
-import { FeedbackForm, NavLink, SubmitButton } from "./interactive";
+import { ClearDraft, FeedbackForm, NavLink, SubmitButton } from "./interactive";
 import { getScenario, href, scenarios, story, type Scenario, type ScenarioId } from "./scenarios";
 
 const STEPS = ["Question", "Feedback", "Next question", "Done"] as const;
@@ -99,6 +99,7 @@ function StepView({ s, step, fb }: { s: Scenario; step: number; fb?: string }) {
   if (step === 1)
     return (
       <>
+        <ClearDraft mode={s.id} />
         <article className="card">
           <p className="eyebrow">Question 1</p>
           <div className="recap">
@@ -138,7 +139,7 @@ function StepView({ s, step, fb }: { s: Scenario; step: number; fb?: string }) {
           </div>
           <dl className="why">
             <dt>Feedback</dt>
-            <dd className={feedback ? "quote" : undefined}>{feedback ? `“${feedback}”` : "None given"}</dd>
+            <dd className={feedback.trim() ? "quote" : undefined}>{feedback.trim() ? `“${feedback.trim()}”` : "None given"}</dd>
             <dt>Read as</dt>
             <dd>{s.reading}</dd>
           </dl>

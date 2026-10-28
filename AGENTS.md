@@ -23,7 +23,7 @@ Repo: github.com/hewittw/sel-feedback-mock · Live: https://feedback-mock.vercel
 
 ## Before saying anything works
 1. `npm run build && npx next start -p 3456`
-2. `node scripts/flow.mjs http://localhost:3456`: the whole session in Chromium, WebKit and Firefox × desktop,
+2. `node scripts/flow.mjs http://localhost:3456` and `node scripts/regress.mjs` (bugs found by the independent verifier): the whole session in Chromium, WebKit and Firefox × desktop,
    iPhone touch, reduced motion and **JS off**, plus refresh/Back/Forward and all 25 URLs (5 types × home + 4 steps). It must say "All checks passed".
 3. The `verify-ui` skill: `scripts/matrix.mjs` on each step at 11 sizes, then `scripts/contact.py` for a contact sheet. Look at it.
 4. Deploy (below), then run `flow.mjs` **once** against the live URL. Do all repeated testing on localhost:

@@ -8,13 +8,26 @@ import { href, type ScenarioId } from "./scenarios";
 
 const noop = () => () => {};
 
-/** A hairline that runs along the bottom of a button while its navigation is in flight (shown after 150ms). */
-function PendingBar({ pending }: { pending: boolean }) {
+/**
+ * A hairline that runs along the bottom of a button while its navigation is in flight (shown after 150ms).
+ * If the step still hasn't arrived after 8s (a stalled connection), fall back to a normal page load.
+ */
+function PendingBar({ pending, fallback }: { pending: boolean; fallback: () => string | null }) {
+  const fallbackRef = useRef(fallback);
+  fallbackRef.current = fallback;
+  useEffect(() => {
+    if (!pending) return;
+    const t = setTimeout(() => {
+      const url = fallbackRef.current();
+      if (url) window.location.assign(url);
+    }, 8000);
+    return () => clearTimeout(t);
+  }, [pending]);
   return <span className="pending-bar" data-on={pending} aria-hidden />;
 }
 
-function LinkPending() {
-  return <PendingBar pending={useLinkStatus().pending} />;
+function LinkPending({ to }: { to: string }) {
+  return <PendingBar pending={useLinkStatus().pending} fallback={() => to} />;
 }
 
 /** A Link styled as a button that shows it is working if the next step takes a moment to arrive. */
@@ -22,20 +35,38 @@ export function NavLink({ children, ...props }: ComponentProps<typeof Link>) {
   return (
     <Link {...props}>
       {children}
-      <LinkPending />
+      <LinkPending to={String(props.href)} />
     </Link>
   );
 }
 
-/** The submit button of a GET <Form>, with the same pending hairline. */
+/** The submit button of a GET <Form>, with the same pending hairline and fallback. */
 export function SubmitButton({ children, className, disabled }: { children: React.ReactNode; className: string; disabled?: boolean }) {
   const { pending } = useFormStatus();
+  const ref = useRef<HTMLButtonElement>(null);
+  const fallback = () => {
+    const form = ref.current?.form;
+    if (!form) return null;
+    const q = new URLSearchParams();
+    new FormData(form).forEach((v, k) => q.append(k, String(v)));
+    return `${form.getAttribute("action") ?? "/"}?${q}`;
+  };
   return (
-    <button type="submit" className={className} disabled={disabled}>
+    <button ref={ref} type="submit" className={className} disabled={disabled}>
       {children}
-      <PendingBar pending={pending} />
+      <PendingBar pending={pending} fallback={fallback} />
     </button>
   );
+}
+
+const draftKey = (mode: ScenarioId) => `fb-draft:${mode}`;
+
+/** Forgets any feedback draft when a new run starts (Question 1). */
+export function ClearDraft({ mode }: { mode: ScenarioId }) {
+  useEffect(() => {
+    try { sessionStorage.removeItem(draftKey(mode)); } catch {}
+  }, [mode]);
+  return null;
 }
 
 /**
@@ -45,24 +76,50 @@ export function SubmitButton({ children, className, disabled }: { children: Reac
 export function FeedbackForm({ mode, sample, initial }: { mode: ScenarioId; sample: string; initial?: string }) {
   // false while hydrating server HTML, true when mounted by a client-side navigation
   const clientMount = useSyncExternalStore(noop, () => true, () => false);
-  const animate = useRef(clientMount && initial === undefined && sample !== "").current;
-  const [text, setText] = useState(initial ?? (animate ? "" : sample));
+  const box = useRef<HTMLTextAreaElement>(null);
+  // What was sent last time (browser Back from Question 2 lands here without it in the URL).
+  const draft = useRef<string | null>(null);
+  if (draft.current === null && clientMount && typeof window !== "undefined") {
+    try { draft.current = sessionStorage.getItem(draftKey(mode)) ?? ""; } catch { draft.current = ""; }
+  }
+  const restored = initial ?? (draft.current || undefined);
+  const animate = useRef(clientMount && restored === undefined && sample !== "").current;
+  // The box is uncontrolled, so hydration never overwrites what someone typed before the page finished loading.
+  const [text, setText] = useState(restored ?? (animate ? "" : sample));
   const [typing, setTyping] = useState(animate);
+
+  // After hydration, adopt whatever is in the box (typed early, or a stored draft on a hard load).
+  useEffect(() => {
+    const el = box.current;
+    if (!el || animate) return;
+    let stored = "";
+    try { stored = initial === undefined ? sessionStorage.getItem(draftKey(mode)) ?? "" : ""; } catch {}
+    if (stored && el.value === sample) el.value = stored;
+    const early = (window as { __fbEarly?: string }).__fbEarly;
+    if (early !== undefined) { el.value = early; delete (window as { __fbEarly?: string }).__fbEarly; }
+    setText(el.value);
+  }, [animate, initial, mode, sample]);
 
   useEffect(() => {
     if (!animate) return;
     let i = 0;
     let t = setTimeout(function tick() {
       i += 1;
-      setText(sample.slice(0, i));
+      const v = sample.slice(0, i);
+      if (box.current) box.current.value = v;
+      setText(v);
       if (i < sample.length) t = setTimeout(tick, 26);
       else setTyping(false);
     }, 450);
     return () => clearTimeout(t);
   }, [animate, sample]);
 
+  const remember = () => {
+    try { sessionStorage.setItem(draftKey(mode), box.current?.value ?? ""); } catch {}
+  };
+
   return (
-    <Form action="/" className="stage-form">
+    <Form action="/" className="stage-form" onSubmit={remember}>
       <input type="hidden" name="mode" value={mode} />
       <input type="hidden" name="step" value="3" />
       <article className="card">
@@ -74,7 +131,8 @@ export function FeedbackForm({ mode, sample, initial }: { mode: ScenarioId; samp
           <textarea
             id="fb"
             name="fb"
-            value={text}
+            ref={box}
+            defaultValue={restored ?? (animate ? "" : sample)}
             maxLength={600}
             readOnly={typing}
             onChange={(e) => setText(e.target.value)}

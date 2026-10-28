@@ -15,7 +15,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {/* Remember what someone types into the feedback box before React hydrates, so it can be restored after. */}
+        <script dangerouslySetInnerHTML={{ __html: "addEventListener('input',function(e){if(e.target&&e.target.id==='fb')window.__fbEarly=e.target.value},true)" }} />
+        {children}
+      </body>
     </html>
   );
 }

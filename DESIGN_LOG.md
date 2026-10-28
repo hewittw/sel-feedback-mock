@@ -56,3 +56,12 @@ What we chose, why, what we rejected, and what was reported broken. Newest at th
   browsers pass the challenge on their own (a brief "Security Checkpoint" page); headless ones fail it.
 - **Rule from now on:** repeated testing on localhost only; one `flow.mjs` run against live per deploy. `flow.mjs`
   now probes first and stops with a plain message if the firewall is challenging. A bypass rule needs Pro, so no.
+
+## 2026-10-28 · Independent verifier: what it found, what we fixed
+- Confirmed the core fix: with JS slow, blocked or off, every step loads as server pages in all 3 engines.
+- **Fixed (all with checks in `scripts/regress.mjs`):** text typed before hydration was replaced by the sample answer
+  (box is now uncontrolled, and a tiny pre-hydration script keeps early keystrokes); browser Back from Question 2 lost
+  the edited feedback (the sent text is kept in sessionStorage, cleared at Question 1); whitespace-only feedback showed
+  `“   ”` (now "None given"); a stalled step request left you on the old page forever (after 8s, a normal page load).
+- **Not fixed (low):** focus returns to the page top after each step for keyboard users; WebKit hides the focus ring
+  while arrowing between radio cards (a WebKit quirk); unusual step values like `2.0` are accepted.
