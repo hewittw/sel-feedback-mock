@@ -144,6 +144,22 @@ a.btn { text-decoration: none; }
 .caret { display: inline-block; width: 1px; height: 1em; background: var(--ink); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
+/* Rating: three faces, each a plain link to the elaborate step. */
+.faces { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 26px; }
+.face {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 22px 8px 18px; border-radius: 3px; text-decoration: none; color: var(--ink);
+  background: var(--mount); border: 1px solid var(--rule-strong); cursor: pointer;
+  transition: background 200ms ease-out, border-color 200ms ease-out, transform 120ms ease-out;
+}
+.face:hover { background: #fff; border-color: var(--ink-soft); }
+.face:active { transform: translateY(1px); }
+.face[aria-current="true"] { background: #fff; border-color: var(--ink); box-shadow: 3px 3px 0 0 #fff, 3px 3px 0 1px var(--ink); }
+.face-emoji { font-size: clamp(40px, 9vw, 56px); line-height: 1; }
+.face-label { font: 500 14px/1.2 var(--sans); text-align: center; }
+.face-sample { position: absolute; top: 7px; right: 7px; font: 500 10px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--pencil); }
+.picked { white-space: nowrap; color: var(--ink); }
+
 /* Before / after */
 .compare { display: grid; gap: 14px; margin-top: 26px; }
 .q { border-radius: 3px; padding: 18px 20px; }
@@ -173,7 +189,7 @@ a.btn { text-decoration: none; }
   .nav { flex-wrap: wrap; }
   .nav > span:empty { display: none; }
   .nav .btn { flex: 1 1 auto; }
-  .step-pip { width: 14px; }
+  .step-pip { width: 10px; }
   .menu .btn-ghost { padding: 0 10px; }
   .tag-mode { display: none; }
 }

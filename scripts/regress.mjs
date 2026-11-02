@@ -11,12 +11,12 @@ for (const [name, eng] of Object.entries({ chromium, webkit, firefox })) {
     // 1. Typing before hydration must survive hydration.
     let ctx = await b.newContext(); let p = await ctx.newPage();
     await p.route(/\/_next\/static\/.*\.js/, async (r) => { await new Promise((z) => setTimeout(z, 3000)); await r.continue(); });
-    await p.goto(`${BASE}/?mode=positive&step=2`, { waitUntil: "commit" });
+    await p.goto(`${BASE}/?mode=positive&step=3`, { waitUntil: "commit" });
     await p.locator("textarea").fill("typed early");
     await p.waitForLoadState("networkidle"); await p.waitForTimeout(800);
     const v1 = await p.locator("textarea").inputValue();
     await submit(p); await p.getByText("Originally planned").waitFor();
-    const shown = await p.locator(".why dd").first().textContent();
+    const shown = await p.locator(".fb-text").textContent();
     log(v1 === "typed early" && shown.includes("typed early"), `${name}: early typing survives hydration (box "${v1}", Q2 "${shown}")`);
     await ctx.close();
 
@@ -27,10 +27,11 @@ for (const [name, eng] of Object.entries({ chromium, webkit, firefox })) {
     ctx = await b.newContext(); p = await ctx.newPage();
     await p.goto(`${BASE}/?mode=positive&step=1`, { waitUntil: "networkidle" });
     await p.getByRole("link", { name: "Done talking" }).click();
-    await p.getByText("Time to give feedback.").waitFor();
+    await p.getByRole("link", { name: /^Great/ }).click();
+    await p.getByText("Parent, elaborate on your previous response.").waitFor();
     await p.locator("button[type=submit]:not([disabled])").waitFor(); // sample finished typing
     await p.locator("textarea").fill("my own words"); await submit(p); await p.getByText("Originally planned").waitFor();
-    await p.goBack(); await p.getByText("Time to give feedback.").waitFor(); await p.waitForTimeout(1200);
+    await p.goBack(); await p.getByText("Parent, elaborate on your previous response.").waitFor(); await p.waitForTimeout(1200);
     const v2 = await p.locator("textarea").inputValue();
     log(v2 === "my own words", `${name}: browser Back keeps edited feedback ("${v2}")`);
     await ctx.close();
@@ -40,8 +41,8 @@ for (const [name, eng] of Object.entries({ chromium, webkit, firefox })) {
     let ctx, p;
     // 3. Whitespace-only feedback reads as none.
     ctx = await b.newContext(); p = await ctx.newPage();
-    await p.goto(`${BASE}/?mode=positive&step=3&fb=%20%20%20`, { waitUntil: "networkidle" });
-    const d3 = (await p.locator(".why dd").first().textContent()).trim();
+    await p.goto(`${BASE}/?mode=positive&step=4&fb=%20%20%20`, { waitUntil: "networkidle" });
+    const d3 = (await p.locator(".fb-text").textContent()).trim();
     log(d3 === "None given", `${name}: whitespace feedback shows "None given" ("${d3}")`);
     await ctx.close();
 

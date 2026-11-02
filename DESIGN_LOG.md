@@ -65,3 +65,15 @@ What we chose, why, what we rejected, and what was reported broken. Newest at th
   `“   ”` (now "None given"); a stalled step request left you on the old page forever (after 8s, a normal page load).
 - **Not fixed (low):** focus returns to the page top after each step for keyboard users; WebKit hides the focus ring
   while arrowing between radio cards (a WebKit quirk); unusual step values like `2.0` are accepted.
+
+## 2026-11-02 · PI feedback: split the check-in into a rating and an elaboration
+- **Flow is now 5 steps:** Question 1 → **How did that question go?** (😞 Not great / 😐 Okay / 😊 Great) →
+  **Parent, elaborate on your previous response** (the old check-in card, which now names the face picked) →
+  Question 2 (the Feedback list shows Rating + Feedback, "Based on your rating and what you wrote about it") → Done.
+- The faces are plain links (`&r=bad|okay|good`), so the rating works without JS like every other step. Each
+  feedback type has a sample face, marked "Sample"; any face can be picked, and Skip passes `r=` (shown as "None given").
+- **Kept static:** the adapted question still comes from the feedback type, not from the face picked. A face that
+  contradicts the type (e.g. 😊 on "too hard") shows as given but doesn't change the question.
+- Test note: with JS off, Playwright in Chromium/WebKit never saw a link inside the sliding-in card as stable;
+  `flow.mjs` now waits for the card animation before pressing. Real clicks were fine.
+- 5 progress pips overflowed the menu by 5px at 320, so phone pips are 10px.

@@ -1,4 +1,4 @@
-/** One mock session: a story question to discuss, a feedback check-in, then the adapted next question. */
+/** One mock session: a story question to discuss, a quick rating, the parent's note on it, then the adapted next question. */
 
 export const story = {
   title: "Bob and the Missing Homework",
@@ -8,6 +8,17 @@ export const story = {
   plannedNext: "Have you ever forgotten something important? What happened?",
 };
 
+/** The three faces on the "How did that question go?" card. */
+export const ratings = [
+  { id: "bad", face: "😞", label: "Not great" },
+  { id: "okay", face: "😐", label: "Okay" },
+  { id: "good", face: "😊", label: "Great" },
+] as const;
+
+export type RatingId = (typeof ratings)[number]["id"];
+
+export const getRating = (id: string | null | undefined) => ratings.find((r) => r.id === id);
+
 export type ScenarioId = "none" | "positive" | "tangential" | "too-hard" | "too-personal";
 
 export type Scenario = {
@@ -16,6 +27,8 @@ export type Scenario = {
   tone: "neutral" | "good" | "bad";
   /** The short tag shown on the home page selector. */
   summary: string;
+  /** The face this run's sample family picks. Empty means they skip the rating. */
+  rating: RatingId | "";
   /** Autopopulated into the feedback box. Empty means the family skips feedback. */
   feedback: string;
   /** How the feedback was read. */
@@ -31,6 +44,7 @@ export const scenarios: Scenario[] = [
     label: "No feedback",
     tone: "neutral",
     summary: "The family skips the check-in.",
+    rating: "",
     feedback: "",
     reading: "No feedback was given.",
     change: "Keep the plan. The next question runs as written.",
@@ -41,6 +55,7 @@ export const scenarios: Scenario[] = [
     label: "Good feedback",
     tone: "good",
     summary: "The question worked and sparked talk.",
+    rating: "good",
     feedback: "That question was great. We talked for a while about how Bob must have felt.",
     reading: "Positive: the question led to real conversation about feelings.",
     change: "Stay on the same theme and go one step deeper.",
@@ -51,6 +66,7 @@ export const scenarios: Scenario[] = [
     label: "Bad feedback · tangential",
     tone: "bad",
     summary: "The question drifted from the point.",
+    rating: "bad",
     feedback: "That question felt tangential. We ended up talking about homework, not feelings.",
     reading: "Negative: the question pulled the talk away from the story’s feelings.",
     change: "Bring the next question back to the emotion at the center of the story.",
@@ -61,6 +77,7 @@ export const scenarios: Scenario[] = [
     label: "Bad feedback · too hard",
     tone: "bad",
     summary: "The child didn’t understand the question.",
+    rating: "bad",
     feedback: "My child didn’t really understand the question and got stuck.",
     reading: "Negative: the question was too open for the child to answer.",
     change: "Make it simpler: a shorter question with concrete choices.",
@@ -71,6 +88,7 @@ export const scenarios: Scenario[] = [
     label: "Bad feedback · too personal",
     tone: "bad",
     summary: "The child didn’t want to talk about themself.",
+    rating: "bad",
     feedback: "My child got quiet. They didn’t want to talk about their own mistakes.",
     reading: "Negative: the child wasn’t ready to talk about their own experience.",
     change: "Give some distance: ask about Bob instead of the child.",
@@ -81,10 +99,11 @@ export const scenarios: Scenario[] = [
 export const getScenario = (id: string | null | undefined) =>
   scenarios.find((s) => s.id === id) ?? scenarios[0];
 
-/** Every step is its own server-rendered URL, e.g. /?mode=tangential&step=3. */
-export function href(mode: ScenarioId, step?: number, fb?: string) {
+/** Every step is its own server-rendered URL, e.g. /?mode=tangential&step=4&r=bad&fb=…. */
+export function href(mode: ScenarioId, step?: number, { r, fb }: { r?: string; fb?: string } = {}) {
   const q = new URLSearchParams({ mode });
   if (step) q.set("step", String(step));
+  if (r !== undefined) q.set("r", r);
   if (fb !== undefined) q.set("fb", fb);
   return `/?${q}`;
 }

@@ -1,11 +1,11 @@
 # Story Time Check-in · Mock Interaction
 
-A mock parent–child story session for one direction of the study: read a question and discuss it together, give
-feedback at a check-in, then see the originally planned next question beside the one adapted from the feedback.
+A mock parent–child story session for one direction of the study: read a question and discuss it together, rate it
+with a face, elaborate in a sentence, then see the originally planned next question beside the one adapted from the feedback.
 Repo: github.com/hewittw/sel-feedback-mock · Live: https://feedback-mock.vercel.app (Vercel project `feedback-mock`, team hew2).
 
 ## How it works (don't break this)
-- **One server-rendered route, `/`, driven by the URL:** `?mode=<id>&step=<1–4>&fb=<feedback text>`. No `step` = home.
+- **One server-rendered route, `/`, driven by the URL:** `?mode=<id>&step=<1–5>&r=<bad|okay|good>&fb=<feedback text>`. No `step` = home.
   Every step is real HTML from the server, joined by `<Link>`s and GET `<Form>`s (`next/form`), so every step
   loads on its own and survives refresh, Back and shared links, **with or without JavaScript**.
 - Never move a step's content into client-only state again. Client code is enhancement only:
@@ -24,7 +24,7 @@ Repo: github.com/hewittw/sel-feedback-mock · Live: https://feedback-mock.vercel
 ## Before saying anything works
 1. `npm run build && npx next start -p 3456`
 2. `node scripts/flow.mjs http://localhost:3456` and `node scripts/regress.mjs` (bugs found by the independent verifier): the whole session in Chromium, WebKit and Firefox × desktop,
-   iPhone touch, reduced motion and **JS off**, plus refresh/Back/Forward and all 25 URLs (5 types × home + 4 steps). It must say "All checks passed".
+   iPhone touch, reduced motion and **JS off**, plus refresh/Back/Forward and all 30 URLs (5 types × home + 5 steps). It must say "All checks passed".
 3. The `verify-ui` skill: `scripts/matrix.mjs` on each step at 11 sizes, then `scripts/contact.py` for a contact sheet. Look at it.
 4. Deploy (below), then run `flow.mjs` **once** against the live URL. Do all repeated testing on localhost:
    each live run is ~600 requests, and Vercel's automatic DDoS mitigation challenges the IP (403,

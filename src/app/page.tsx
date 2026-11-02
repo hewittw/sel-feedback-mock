@@ -1,13 +1,13 @@
 import Form from "next/form";
 import { ClearDraft, FeedbackForm, NavLink, SubmitButton } from "./interactive";
-import { getScenario, href, scenarios, story, type Scenario, type ScenarioId } from "./scenarios";
+import { getRating, getScenario, href, ratings, scenarios, story, type Scenario, type ScenarioId } from "./scenarios";
 
-const STEPS = ["Question", "Feedback", "Next question", "Done"] as const;
+const STEPS = ["Question", "Rating", "Elaborate", "Next question", "Done"] as const;
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
 /**
- * The server renders every step from the URL (?mode=…&step=…&fb=…), and steps are joined by real links and
+ * The server renders every step from the URL (?mode=…&step=…&r=…&fb=…), and steps are joined by real links and
  * forms. So each step loads on its own, survives refresh and Back, and works before or without JavaScript.
  */
 export default async function Page({ searchParams }: PageProps<"/">) {
@@ -22,7 +22,7 @@ export default async function Page({ searchParams }: PageProps<"/">) {
     <main className="shell">
       <div className="stage">
         <Menu s={s} step={step} />
-        <StepView key={step} s={s} step={step} fb={one(q.fb)} />
+        <StepView key={step} s={s} step={step} r={one(q.r)} fb={one(q.fb)} />
       </div>
       <Foot />
     </main>
@@ -91,8 +91,10 @@ function Menu({ s, step }: { s: Scenario; step: number }) {
   );
 }
 
-function StepView({ s, step, fb }: { s: Scenario; step: number; fb?: string }) {
-  // Opened without feedback in the URL (a shared link): use the sample answer, as if it was sent.
+function StepView({ s, step, r, fb }: { s: Scenario; step: number; r?: string; fb?: string }) {
+  // Opened without a rating or feedback in the URL (a shared link): use the sample answers, as if they were sent.
+  const rating = getRating(r ?? s.rating);
+  const rated = rating?.id ?? "";
   const feedback = fb ?? s.feedback;
   const changed = s.next !== story.plannedNext;
 
@@ -116,14 +118,45 @@ function StepView({ s, step, fb }: { s: Scenario; step: number; fb?: string }) {
       </>
     );
 
-  if (step === 2) return <FeedbackForm mode={s.id} sample={s.feedback} initial={fb} />;
+  if (step === 2)
+    return (
+      <>
+        <article className="card">
+          <p className="eyebrow">Check-in</p>
+          <h2>How did that question go?</h2>
+          <p className="sub">Tap the face that fits.</p>
+          <div className="faces" role="group" aria-label="How did that question go?">
+            {ratings.map((x) => (
+              <NavLink
+                key={x.id}
+                className="face"
+                href={href(s.id, 3, { r: x.id })}
+                aria-current={r === x.id ? "true" : undefined}
+              >
+                <span className="face-emoji" aria-hidden>{x.face}</span>
+                <span className="face-label">{x.label}</span>
+                {x.id === s.rating && <span className="face-sample">Sample</span>}
+              </NavLink>
+            ))}
+          </div>
+          <p className="who">{s.rating ? "The sample answer for this run is marked. Any face works." : "No rating in this run. You can skip."}</p>
+        </article>
+        <div className="nav">
+          <NavLink className="btn" href={href(s.id, 1)}>← Back</NavLink>
+          <NavLink className="btn" href={href(s.id, 3, { r: "" })}>Skip →</NavLink>
+        </div>
+      </>
+    );
 
-  if (step === 3)
+  if (step === 3) return <FeedbackForm mode={s.id} rating={rated} sample={s.feedback} initial={fb} />;
+
+  if (step === 4)
     return (
       <>
         <article className="card">
           <p className="eyebrow">Question 2</p>
           <h2>{changed ? "Your next question was adjusted." : "Your next question stays the same."}</h2>
+          <p className="sub">Based on your rating and what you wrote about it.</p>
           <div className="compare">
             <div className="q q-old">
               <div className="q-label">Originally planned</div>
@@ -138,15 +171,17 @@ function StepView({ s, step, fb }: { s: Scenario; step: number; fb?: string }) {
             </div>
           </div>
           <dl className="why">
+            <dt>Rating</dt>
+            <dd className="fb-rating">{rating ? `${rating.face} ${rating.label}` : "None given"}</dd>
             <dt>Feedback</dt>
-            <dd className={feedback.trim() ? "quote" : undefined}>{feedback.trim() ? `“${feedback.trim()}”` : "None given"}</dd>
+            <dd className={feedback.trim() ? "fb-text quote" : "fb-text"}>{feedback.trim() ? `“${feedback.trim()}”` : "None given"}</dd>
             <dt>Read as</dt>
             <dd>{s.reading}</dd>
           </dl>
         </article>
         <div className="nav">
-          <NavLink className="btn" href={href(s.id, 2, feedback)}>← Back</NavLink>
-          <NavLink className="btn btn-primary" href={href(s.id, 4, feedback)}>Ask this question →</NavLink>
+          <NavLink className="btn" href={href(s.id, 3, { r: rated, fb: feedback })}>← Back</NavLink>
+          <NavLink className="btn btn-primary" href={href(s.id, 5, { r: rated, fb: feedback })}>Ask this question →</NavLink>
         </div>
       </>
     );
@@ -156,11 +191,12 @@ function StepView({ s, step, fb }: { s: Scenario; step: number; fb?: string }) {
       <article className="card">
         <p className="eyebrow">End of mock</p>
         <h2>That’s the full loop.</h2>
-        <p className="sub">In a real session the family would now discuss question 2, and check in again after it.</p>
+        <p className="sub">In a real session the family would now discuss question 2, then rate and elaborate again after it.</p>
         <ul className="done-list">
           <li>Read a story question together</li>
           <li>Discussed it, parent and child</li>
-          <li>{feedback.trim() ? "Gave feedback at the check-in" : "Skipped the check-in"}</li>
+          <li>{rating ? `Rated the question ${rating.face}` : "Skipped the rating"}</li>
+          <li>{feedback.trim() ? "Elaborated on the rating" : "Skipped elaborating"}</li>
           <li>{changed ? "Got an adjusted next question" : "Kept the planned next question"}</li>
         </ul>
       </article>

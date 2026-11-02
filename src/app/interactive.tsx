@@ -4,7 +4,7 @@ import Form from "next/form";
 import Link, { useLinkStatus } from "next/link";
 import { type ComponentProps, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useFormStatus } from "react-dom";
-import { href, type ScenarioId } from "./scenarios";
+import { getRating, href, type RatingId, type ScenarioId } from "./scenarios";
 
 const noop = () => () => {};
 
@@ -70,10 +70,11 @@ export function ClearDraft({ mode }: { mode: ScenarioId }) {
 }
 
 /**
- * The check-in card. The server renders it with the sample answer already in the box, so it works without
+ * The elaborate card (the second half of the check-in). The server renders it with the sample answer already in the box, so it works without
  * JavaScript. Only when the step is reached by an in-app click (not a page load) does the answer type itself in.
  */
-export function FeedbackForm({ mode, sample, initial }: { mode: ScenarioId; sample: string; initial?: string }) {
+export function FeedbackForm({ mode, rating, sample, initial }: { mode: ScenarioId; rating: RatingId | ""; sample: string; initial?: string }) {
+  const picked = getRating(rating);
   // false while hydrating server HTML, true when mounted by a client-side navigation
   const clientMount = useSyncExternalStore(noop, () => true, () => false);
   const box = useRef<HTMLTextAreaElement>(null);
@@ -121,11 +122,14 @@ export function FeedbackForm({ mode, sample, initial }: { mode: ScenarioId; samp
   return (
     <Form action="/" className="stage-form" onSubmit={remember}>
       <input type="hidden" name="mode" value={mode} />
-      <input type="hidden" name="step" value="3" />
+      <input type="hidden" name="step" value="4" />
+      <input type="hidden" name="r" value={rating} />
       <article className="card">
         <p className="eyebrow">Check-in</p>
-        <h2>Time to give feedback.</h2>
-        <p className="sub">How did that question go for you two? A sentence is enough.</p>
+        <h2>Parent, elaborate on your previous response.</h2>
+        <p className="sub">
+          {picked ? <>You picked <span className="picked">{picked.face} {picked.label}</span>. What made it go that way?</> : "What made the question go the way it did?"} A sentence is enough.
+        </p>
         <div className="field">
           <label htmlFor="fb">Your feedback</label>
           <textarea
@@ -147,7 +151,7 @@ export function FeedbackForm({ mode, sample, initial }: { mode: ScenarioId; samp
         </div>
       </article>
       <div className="nav">
-        <NavLink className="btn" href={href(mode, 1)}>← Back</NavLink>
+        <NavLink className="btn" href={href(mode, 2, { r: rating })}>← Back</NavLink>
         <SubmitButton className="btn btn-primary" disabled={typing}>
           {text.trim() ? "Send feedback →" : "Skip feedback →"}
         </SubmitButton>
